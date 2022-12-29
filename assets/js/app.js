@@ -213,7 +213,7 @@ setTimeout(function(){
       var currZoom = map.getZoom();
       if(currZoom <= 16){
         // console.log(currZoom)
-        layer.bindPopup( "<h4> Territory: " + feature.properties.id )
+        layer.bindPopup( "<h4> Territory: " + feature.properties.id + "</h4>"+"<strong> RepName: </strong>" + feature.properties.rep_name)
         // layer.bindPopup( "<h4> Territory: " + feature.properties.id + "</h4>"+"<strong> Name: </strong>" + e.rep_name + "<br/>"+"<strong> Email: </strong>" + e.rep_email + "<br/>")
       }
       tlyr_arr.push(layer)
