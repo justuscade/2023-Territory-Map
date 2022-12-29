@@ -249,7 +249,7 @@ function generateList() {
 
 setTimeout(function(){
   generateList();
-},500)
+},1000)
 
 function flyTotritory(tritory_id) {
   console.log(tritory_id)
