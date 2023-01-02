@@ -4,7 +4,7 @@ $loc = 'http://' . $_SERVER['HTTP_HOST'];
 if (isset($_SESSION['VA_ADMIN'])) {
 
 } else {
-    header("Location:" . $loc . "/admin.php");
+    header("Location:" . $loc . "/2023-Territory-Map/admin.php");
 }
 ?>
 
