@@ -141,13 +141,23 @@ input[type="radio"], input[type="checkbox"] {
 display: none !important;
 } */
 
-.leaflet-draw-draw-polygon {
+.leaflet-draw-draw-circle {
 display: none !important;
 }
 
-.leaflet-draw-section{
+.leaflet-draw-draw-polygon {
   display: none !important;
-}
+  }
+.leaflet-draw-draw-polyline {
+  display: none !important;
+  }
+.leaflet-pm-icon-polygon {
+  display: none !important;
+  }
+
+/* .leaflet-draw-section{
+  display: none !important;
+} */
    .leaflet-draw-edit-edit {
   display: none !important;
 }
@@ -158,13 +168,20 @@ display: none !important;
   display: none !important;
 }
 
-.draw-control-disabled {
+/* .draw-control-disabled {
     filter: contrast(22%) brightness(157%);
     pointer-events:none;
-}
+} */
 
 
 img.huechange { filter: hue-rotate(155deg); }
+
+
+.leaflet-popup-content {
+  min-width: 220px;
+  max-width: 250px;
+  /* overflow-y: scroll; */
+}
 
 
   

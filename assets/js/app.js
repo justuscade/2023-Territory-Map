@@ -106,7 +106,7 @@ var uscountieslyr=L.geoJson(uscounties, {
   onEachFeature: function( feature, layer ){
    
     layer.bindPopup( "<b> County Name: </b>" + feature.properties.NAME )
-    // console.log(feature.properties.id)
+    // console.log(feature.properties.terr_id)
 
    
   }
@@ -130,23 +130,59 @@ setTimeout(function(){
     // "Clouds": clouds_layer
     };
      mylayercontrol= L.control.layers(baseLayers,overLays).addTo(map);
-},2000)
+},2500)
 
 
 
 
-L.DomEvent.on(document.getElementById('btnGetLoc'), 'click', function(){
-  // map.locate({setView: true, maxZoom: 16});
-  // $('.leaflet-control-locate-location-arrow')[0].click()
-      map.locate({setView: true, maxZoom: 15});
-      map.on('locationfound', onLocationFound);
-      function onLocationFound(e) {
-          console.log(e); 
-          // e.heading will contain the user's heading (in degrees) if it's available, and if not it will be NaN. This would allow you to point a marker in the same direction the user is pointed. 
-          var lmarker=L.marker(e.latlng).addTo(map);
-          lmarker._icon.classList.add("huechange");
-      }
-})
+// L.DomEvent.on(document.getElementById('btnGetLoc'), 'click', function(){
+//   // map.locate({setView: true, maxZoom: 16});
+//   // $('.leaflet-control-locate-location-arrow')[0].click()
+//       map.locate({setView: true, maxZoom: 15});
+//       map.on('locationfound', onLocationFound);
+//       function onLocationFound(e) {
+//           console.log(e); 
+//           // e.heading will contain the user's heading (in degrees) if it's available, and if not it will be NaN. This would allow you to point a marker in the same direction the user is pointed. 
+//           var lmarker=L.marker(e.latlng).addTo(map);
+//           lmarker._icon.classList.add("huechange");
+//       }
+// })
+
+
+var redIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+let locationButton = document.getElementById("btnGetLoc");
+  locationButton.addEventListener("click", () => {
+    // Try HTML5 geolocation.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          console.log(pos);
+          map.setView([pos.lat, pos.lng], 15);
+          // var lmarker=L.marker([pos.lat, pos.lng]).addTo(map);
+          var lmarker=L.marker([pos.lat, pos.lng], {icon: redIcon}).addTo(map);
+        },
+        () => {
+          console.log("handleLocationError");
+        }
+      );
+    } else {
+      // Browser doesn't support Geolocation
+      console.log("Browser doesn't support Geolocation");
+    }
+  });
 
 
 
@@ -169,14 +205,14 @@ L.DomEvent.on(document.getElementById('btnGetLoc'), 'click', function(){
 
 
 
-var lc = L.control
-  .locate({
-    position: "topright",
-    strings: {
-      title: "Show me where I am, yo!"
-    }
-  })
-  .addTo(map);
+// var lc = L.control
+//   .locate({
+//     position: "topright",
+//     strings: {
+//       title: "Show me where I am, yo!"
+//     }
+//   })
+//   .addTo(map);
 
 
   
@@ -265,7 +301,7 @@ setTimeout(function(){
         strokeOpacity: 1,
         strokeWeight: 0.5,
         fillColor: color,
-        fillOpacity: 0.2,
+        fillOpacity: 0.5,
         weight: 0.9,
         opacity: 0.7,
         dashArray: '2',
@@ -274,19 +310,19 @@ setTimeout(function(){
 
     },
     onEachFeature: function( feature, layer ){
-      // console.log(feature.properties.id)
+      // console.log(feature.properties.terr_id)
       var currZoom = map.getZoom();
       if(currZoom <= 16){
         // console.log(currZoom)
-        layer.bindPopup( "<h4> Territory: " + feature.properties.id + "</h4>"+"<strong> RepName: </strong>" + feature.properties.rep_name)
-        // layer.bindPopup( "<h4> Territory: " + feature.properties.id + "</h4>"+"<strong> Name: </strong>" + e.rep_name + "<br/>"+"<strong> Email: </strong>" + e.rep_email + "<br/>")
+        layer.bindPopup( "<h4> Territory: " + feature.properties.terr_id + "</h4>"+"<strong> RepName: </strong>" + feature.properties.rep_name)
+        // layer.bindPopup( "<h4> Territory: " + feature.properties.terr_id + "</h4>"+"<strong> Name: </strong>" + e.rep_name + "<br/>"+"<strong> Email: </strong>" + e.rep_email + "<br/>")
       }
       tlyr_arr.push(layer)
      
     }
   })
   map.addLayer(territories_lyr)
-},1400);
+},2000);
 
 
 
@@ -314,17 +350,17 @@ function generateList() {
 
 setTimeout(function(){
   generateList();
-},1400)
+},1700)
 
 function flyTotritory(tritory_id) {
   console.log(tritory_id)
   for(var i=0; i<tlyr_arr.length; i++ ){
-    if(tlyr_arr[i].feature.properties.id==tritory_id){
+    if(tlyr_arr[i].feature.properties.terr_id==tritory_id){
       var latlng= tlyr_arr[i].getBounds().getCenter()
       map.flyTo(latlng, 12, {
           duration: 3
       });
-      // map.fitBounds(territories_lyr.pm._layers[i].getBounds(), {padding: [50, 50]});
+     
       setTimeout(() => {
         L.popup({closeButton: true, offset: L.point(0, -8)})
         .setLatLng(latlng)

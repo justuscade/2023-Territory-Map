@@ -6,6 +6,12 @@ var currentlayer;
 var territories_lyr=new L.LayerGroup()
 var territories_data 
 var mylayercontrol 
+var new_created_lyr
+var drawnPolygons = L.featureGroup();
+var drawnLines = L.featureGroup();
+
+
+
 var dark  = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png');
 // var dark  = L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png');
 
@@ -32,6 +38,13 @@ var openstreet   = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.p
   attributionControl: false,
   // fullscreenControl: true,
 });
+
+    // saad split
+  drawnPolygons.addTo(map);
+  drawnLines.addTo(map);
+
+
+
 map.zoomControl.setPosition('bottomright');
 var googlestreet   = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
     maxZoom: 20,
@@ -102,18 +115,57 @@ var baseLayers = {
 
 
 
-L.DomEvent.on(document.getElementById('btnGetLoc'), 'click', function(){
-  // map.locate({setView: true, maxZoom: 16});
-  // $('.leaflet-control-locate-location-arrow')[0].click()
-  map.locate({setView: true, maxZoom: 15});
-  map.on('locationfound', onLocationFound);
-  function onLocationFound(e) {
-      console.log(e); 
-      // e.heading will contain the user's heading (in degrees) if it's available, and if not it will be NaN. This would allow you to point a marker in the same direction the user is pointed. 
-      var lmarker=L.marker(e.latlng).addTo(map);
-      lmarker._icon.classList.add("huechange");
-  }
-})
+// L.DomEvent.on(document.getElementById('btnGetLoc'), 'click', function(){
+//   // map.locate({setView: true, maxZoom: 16});
+//   // $('.leaflet-control-locate-location-arrow')[0].click()
+//   map.locate({setView: true, maxZoom: 15});
+//   map.on('locationfound', onLocationFound);
+//   function onLocationFound(e) {
+//       console.log(e); 
+//       // e.heading will contain the user's heading (in degrees) if it's available, and if not it will be NaN. This would allow you to point a marker in the same direction the user is pointed. 
+//       var lmarker=L.marker(e.latlng).addTo(map);
+//       lmarker._icon.classList.add("huechange");
+//   }
+// })
+
+
+var redIcon = new L.Icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41]
+});
+
+
+
+
+let locationButton = document.getElementById("btnGetLoc");
+  locationButton.addEventListener("click", () => {
+    // Try HTML5 geolocation.
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+
+          console.log(pos);
+          map.setView([pos.lat, pos.lng], 15);
+          // var lmarker=L.marker([pos.lat, pos.lng]).addTo(map);
+          var lmarker=L.marker([pos.lat, pos.lng], {icon: redIcon}).addTo(map);
+        },
+        () => {
+          console.log("handleLocationError");
+        }
+      );
+    } else {
+      // Browser doesn't support Geolocation
+      console.log("Browser doesn't support Geolocation");
+    }
+  });
 
 
 // function onLocationFound(e) {
@@ -138,149 +190,6 @@ var lc = L.control
     }
   })
   .addTo(map);
-
-
-
-
-
-
-
-
-  
-  var options = {
-    position: 'topright', // toolbar position, options are 'topleft', 'topright', 'bottomleft', 'bottomright'
-    drawMarker: false,  // adds button to draw markers
-    drawPolygon: true,  // adds button to draw a polygon
-    drawPolyline: false,  // adds button to draw a polyline
-    drawCircle: false,  // adds button to draw a cricle
-    editPolygon: true,  // adds button to toggle global edit mode
-    deleteLayer: false,   // adds a button to delete layers
-    drawText: false,   // adds a button to delete layers        
-    cutPolygon: true,   // adds a button to delete layers        
-    drawRectangle: false,   // adds a button to delete layers        
-    dragMode: false,   // adds a button to delete layers        
-    drawCircleMarker: false,   // adds a button to delete layers        
-    rotateMode: false,   // adds a button to delete layers        
-      
-   
-};
-
-// add leaflet.pm controls to the map
-
-map.pm.addControls(options);
-
-
-// get array of all available shapes
-map.pm.Draw.getShapes()
-
-
-
-// disable drawing mode
-map.pm.disableDraw('Polygon');
-
-// listen to when drawing mode gets enabled
-map.on('pm:drawstart', function(e) {
-  // console.log(e)
-});
-
-// listen to when drawing mode gets disabled
-map.on('pm:drawend', function(e) {
-  // console.log(e)
-});
-
-
-// listen to when a new layer is created
-var new_created_lyr
-map.on('pm:create', function(e) {
- var layer = e.layer
-  new_created_lyr=''
-  new_created_lyr=layer.toGeoJSON()
-  // console.log(e)
-  
-  // feature = layer.feature = layer.feature || {}; // Intialize layer.feature
-  // feature.type = feature.type || "Feature"; // Intialize feature.type
-  // var props = feature.properties = feature.properties || {}; // Intialize feature.properties
-  // props.title = "my title";
-  // props.content = "my content";
-  var idIW  = L.popup();
-  var content = '<form><b>Territory ID:</b><br/><input id="popid" placeholder="Enter ID" type="text"/><br><b>Color:</b><br/><input id="pcolor" placeholder="Enter ColorID" type="text"/><br><b>Name:</b><br/><input id="pName" placeholder="Enter Name" type="text"/><br><b>Email:</b><br/><input id="pEmail" placeholder="Enter Email" type="text"/><br/><br/><input type="button" class="btn btn-success" style="margin-left:25%" id="okBtn" value="Save" onclick="saveIdIW()"/></form>';
-  idIW.setContent(content);
-  idIW.setLatLng(e.layer.getBounds().getCenter());
-  idIW.openOn(map);
-  // drawnItems.addLayer(layer);
-
-  // listen to changes on the new layer
-  e.layer.on('pm:edit', function(x) {
-  // console.log('edit', x)
-  });
-});
-
-
-function saveIdIW(){
-  var popid=$("#popid").val();
-  var pcolor=$("#pcolor").val();
-  var pname=$("#pName").val();
-  var pEmail=$("#pEmail").val();
-  
-  // console.log(popid+","+pname+","+pEmail)
-  // console.log(new_created_lyr)
-  var props = new_created_lyr.properties = new_created_lyr.properties || {}; // Intialize feature.properties
-  props.id = popid;
-  props.color = pcolor;
-  props.rep_name = pname;
-  props.rep_email = pEmail;
-  props.terr_id = popid;
-  // console.log(new_created_lyr)
-
- territories_data.features.push(new_created_lyr);
-
-  setTimeout(function(){
-    var dataString = JSON.stringify(territories_data);
-    $.ajax({
-            type: "POST",
-            dataType: "json",
-            url: "services/update_json_data.php",
-            data: {myData:dataString},
-            // contentType: "application/json; charset=utf-8",
-            success: function(data){
-                // alert('Items added');
-            },
-            error: function(e){
-                console.log(e.message);
-            }
-    });
-    map.closePopup();
-    map.removeLayer(territories_lyr)
-    territories_lyr=new L.LayerGroup()
-    drawnItems.clearLayers();
-    maketerritories()
-    map.addLayer(territories_lyr)
-    $("#states_list").empty()
-    generateList();
-    alert("New Polygon Added Successfully")
-    map.removeControl(mylayercontrol);
-    setTimeout(function(){
-      var overLays = {
-        "Territories Layer":territories_lyr,
-        "Counties Map Overlay": uscountieslyr,
-        };
-        mylayercontrol = L.control.layers(baseLayers,overLays).addTo(map);
-    },500)
-},200)
-
-
-
-
-}
-
-
-
-
-
-
-map.pm.setGlobalOptions({
-  limitMarkersToCount: 20
-})
 
 
 var measuredistance=L.control.polylineMeasure({showUnitControl: true,position:'topright'}).addTo(map);
@@ -326,16 +235,6 @@ map.on('click', function(e) {
 
     } 
 });
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -387,11 +286,11 @@ function maketerritories(){
         click: terri_layerclick
       })
       tlyr_arr.push(layer)
-      // console.log(feature.properties.id)
+      // console.log(feature.properties.terr_id)
      
 
       // drawnItems.addLayer(layer);
-      // map.pm.addLayer(layer);
+     
      
     }
   })
@@ -399,7 +298,7 @@ function maketerritories(){
 setTimeout(function(){
   maketerritories()
   map.addLayer(territories_lyr)
-},1200)
+},2000)
 
 
 
@@ -427,7 +326,7 @@ setTimeout(function(){
     onEachFeature: function( feature, layer ){
      
       layer.bindPopup( "<b> County Name: </b>" + feature.properties.NAME )
-      // console.log(feature.properties.id)
+      // console.log(feature.properties.terr_id)
  
      
     }
@@ -451,7 +350,7 @@ setTimeout(function(){
       // "Clouds": clouds_layer
       };
        mylayercontrol= L.control.layers(baseLayers,overLays).addTo(map);
-  },2000)
+  },3000)
 
        
 
@@ -465,23 +364,23 @@ setTimeout(function(){
 
 
 
-setTimeout(() => {
-  territories_lyr.on('pm:edit', function (e) {
-    console.log("lyr edited");
-    console.log(e);
-  });
-  territories_lyr.on('pm:update', function (e) {
-    console.log("lyr upated");
-    console.log(e);
+// setTimeout(() => {
+//   territories_lyr.on('pm:edit', function (e) {
+//     console.log("lyr edited");
+//     console.log(e);
+//   });
+//   territories_lyr.on('pm:update', function (e) {
+//     console.log("lyr upated");
+//     console.log(e);
     // console.log(e.layer.feature);
     // console.log(JSON.stringify(e.layer.feature));
 
     // //Find index of specific object using findIndex method.    
 
     
-    // // objIndex = territories_data.features.findIndex((obj => Number(obj.properties.id)+1 == Number(e.layer.feature.properties.id)));
+    // // objIndex = territories_data.features.findIndex((obj => Number(obj.properties.terr_id)+1 == Number(e.layer.feature.properties.terr_id)));
     // for (const obj of territories_data.features) {
-    //   if (obj.properties.id === e.layer.feature.properties.id) {
+    //   if (obj.properties.terr_id === e.layer.feature.properties.terr_id) {
     //     obj.geometry = e.layer.feature.geometry;
     //     break;
     //   }
@@ -515,24 +414,17 @@ setTimeout(() => {
     // },200)
 
     
-  });
-}, 1700);
+//   });
+// }, 1700);
 
 
 function terri_layerclick(e) {
   console.log(mycount+1)
   var layer = e.target;
   // var poly_id=layer.defaultOptions.id
-  var f_id=layer.feature.properties.id
+  var f_id=Number(layer.feature.properties.GEO_ID)
   // var name=layer.feature.properties.name
-
-
-
   var idIW = L.popup();
-
-
-
-
   var currZoom = map.getZoom();
     if(currZoom > 16){
       // console.log(currZoom)
@@ -550,8 +442,9 @@ function terri_layerclick(e) {
       })
 
     }else{
+      var param = "'"+layer.feature.properties.GEO_ID+"'";
       var content='' 
-      content=content + "<h4> Territory: " + f_id + "</h4>"+"<strong> Name: </strong>" + layer.feature.properties.rep_name + "<br/>"+"<strong> Email: </strong>" + layer.feature.properties.rep_email + "<br/><br/><input type='button' class='btn btn-success' style='margin-left:25%' id='editbtn' value='Edit Data' onclick='edit_terr_data("+f_id+")'/>"
+      content=content + "<h4> Territory: " + f_id + "</h4>"+"<strong> Name: </strong>" + layer.feature.properties.rep_name + "<br/>"+"<strong> Email: </strong>" + layer.feature.properties.rep_email + "<br/><br/><input type='button' class='btn btn-success' style='margin-left:1%; display: inline;' id='editbtn' value='Edit Data' onclick='edit_terr_data("+f_id+")'/>&nbsp&nbsp<input type='button' class='btn btn-warning' style='display: inline;' id='editpolygonbtn' value='Split Polygon' onclick=\"split_terr_polygon_func("+param+")\" />"
       // "<br/><input type='button' class='btn btn-success' id='okBtn1' value='Edit Button' onclick='saveIdIW()'/>"
       // layer.bindPopup( "<h4> Territory: " + f_id + "</h4>"+"<strong> Name: </strong>" + e.rep_name + "<br/>"+"<strong> Email: </strong>" + e.rep_email + "<br/>").openPopup()
       idIW.setContent(content);
@@ -565,10 +458,10 @@ function terri_layerclick(e) {
 
 
 var trr_indx=0
-function edit_terr_data(terr_id){
-console.log(terr_id)
+function edit_terr_data(geoid){
+console.log(geoid)
 
-trr_indx=territories_data.features.findIndex(x => x.properties.terr_id === terr_id)
+trr_indx=territories_data.features.findIndex(x => Number(x.properties.GEO_ID) === geoid)
 
 $("#mterr_id").val(territories_data.features[trr_indx].properties.terr_id)
 $("#mRecName").val(territories_data.features[trr_indx].properties.rep_name)
@@ -587,7 +480,7 @@ function saveterr_edited_data(){
 
   // var terr_idx=territories_data.features.findIndex(x => x.properties.terr_id === terr_id)
   var props = territories_data.features[trr_indx].properties 
-  props.id = Number(terr_id);
+  // props.id = Number(terr_id);
   props.color = Number(mColor);
   props.rep_name = mRecName;
   props.rep_email = mRecEmail;
@@ -616,7 +509,7 @@ function saveterr_edited_data(){
     map.addLayer(territories_lyr)
     $("#states_list").empty()
     generateList();
-    alert("New Polygon Edited Successfully")
+    alert("Polygon Data Edited Successfully")
     $('#terr_edit_Modal').modal('hide'); 
     map.removeControl(mylayercontrol);
     setTimeout(function(){
@@ -648,7 +541,7 @@ function generateList() {
 
 setTimeout(function(){
   generateList();
-},800)
+},1700)
 
 var tlyr_arr_fly_index
 function flyTotritory(tritory_id) {
@@ -656,16 +549,16 @@ function flyTotritory(tritory_id) {
   console.log(tritory_id)
   for(var i=0; i<tlyr_arr.length; i++ ){
   
-    if(tlyr_arr[i].feature.properties.id==tritory_id){
+    if(tlyr_arr[i].feature.properties.terr_id==tritory_id){
       tlyr_arr_fly_index=i
       var latlng= tlyr_arr[i].getBounds().getCenter()
       map.flyTo(latlng, 12, {
           duration: 3
       });
-      // map.fitBounds(territories_lyr.pm._layers[i].getBounds(), {padding: [50, 50]});
+    
       setTimeout(() => {
         var content='' 
-        content=content+"<h4> Territory: " + tlyr_arr[tlyr_arr_fly_index].feature.properties.id + "</h4>"+"<strong> Name: </strong>" + tlyr_arr[tlyr_arr_fly_index].feature.properties.rep_name + "<br/>"+"<strong> Email: </strong>" + tlyr_arr[tlyr_arr_fly_index].feature.properties.rep_email + "<br/><br/><input type='button' class='btn btn-success' style='margin-left:25%' id='editbtn' value='Edit Data' onclick='edit_terr_data("+tritory_id+")'/>"
+        content=content+"<h4> Territory: " + tlyr_arr[tlyr_arr_fly_index].feature.properties.terr_id + "</h4>"+"<strong> Name: </strong>" + tlyr_arr[tlyr_arr_fly_index].feature.properties.rep_name + "<br/>"+"<strong> Email: </strong>" + tlyr_arr[tlyr_arr_fly_index].feature.properties.rep_email + "<br/><br/><input type='button' class='btn btn-success' style='margin-left:25%' id='editbtn' value='Edit Data' onclick='edit_terr_data("+tritory_id+")'/>"
        
         L.popup({closeButton: true, offset: L.point(0, -8)})
         .setLatLng(latlng)
@@ -683,109 +576,667 @@ function flyTotritory(tritory_id) {
 
 
 
+// var drawnItems = new L.FeatureGroup();
+// map.addLayer(drawnItems);
+
+// var drawControl = new L.Control.Draw({
+//   draw: {
+//     position: 'topright',
+//     polygon: false,
+//     // {
+//     //   title: 'Draw a polygon!',
+//     //   allowIntersection: false,
+//     //   drawError: {
+//     //     color: '#b00b00',
+//     //     timeout: 1000
+//     //   },
+//     //   shapeOptions: {
+//     //     color: 'red'
+//     //   },
+//     //   showArea: true
+//     // },
+//     // polyline: {
+//     //   metric: false
+//     // },
+//     // circle: {
+//     //   shapeOptions: {
+//     //     color: '#662d91'
+//     //   }
+//     // }
+//     polyline:true,
+//     rectangle: false,
+//     circle: {
+//       title: 'click on mouse Draw a Circle on map and relase mouse to get results!',
+//       shapeOptions: {
+//         color: 'green'
+//       },
+//       metric:['km'],
+//       showArea: true,
+//       // kilometers:true,
+//       // metres: false,
+//       // feet: false,
+//       // yards: false,
+//       // miles: false,
+//       // acres: false,
+
+//     },
+//     circlemarker: false,
+//     marker: false
+
+//   },
+//   edit: {
+//     featureGroup: drawnItems
+//   }
+// });
+
+// map.on('draw:created', function (e) {
+//   $("#div_output").empty();
+//   document.getElementById("div_output").innerHTML = "Please Wait...";
+//   var type = e.layerType,
+//     layer = e.layer;
+//     console.log(layer)
+
+//     layer._latlng.lat
+//     layer._latlng.lng
+//     layer._mRadius
+
+//     var radius_inkm= (layer._mRadius/1000).toFixed(2);
+//     // var radius_inkm = radius.toFixed(2)
+//     var miles = (radius_inkm / 1.609).toFixed(2);
+
+
+//     $.ajax({
+//       url: "https://ringpopulationsapi.azurewebsites.net/api/globalringpopulations?latitude="+layer._latlng.lat+"&longitude="+layer._latlng.lng+"&distance_km="+radius_inkm,
+//       type: "GET",
+//       dataType: "json",
+//       // contentType: "application/json; charset=utf-8",
+//       success: function(data){
+//           console.log(data);
+
+//           var content='' 
+//         content=content+"<h4><strong> Population: </strong>" + data.people + "</h4>"+"<strong> Bus Stops: </strong>" + data.busStops + "<br/>"+"<strong> Rail Stops: </strong>" + data.railStops + "<br/>"+"<strong>Tram Stops: </strong>" + data.tramStops+ "<br/>"+"<b style='font-size: 11px;'>Radius in KM & Miles: " + radius_inkm+"km, "+miles+"mi</b>"
+//         $("#div_output").html(content)
+//       },
+//       error: function(e){
+//           console.log(e.message);
+//       }
+//     });
+
+
+//   if (type === 'marker') {
+//     radiusCircle = layer;
+//     layer.bindPopup('A popup!');
+//   }
+
+//   if (type === 'polygon') {
+//     polygon = layer;
+// }
+
+//   drawnItems.addLayer(layer);
+// });
+
+// map.addControl(drawControl);
+
+
 
 
 
 
 var drawnItems = new L.FeatureGroup();
-map.addLayer(drawnItems);
 
-var drawControl = new L.Control.Draw({
+
+var drawControl =new L.Control.Draw({
   draw: {
-    position: 'bottomleft',
-    polygon: {
-      title: 'Draw a polygon!',
-      allowIntersection: false,
-      drawError: {
-        color: '#b00b00',
-        timeout: 1000
-      },
-      shapeOptions: {
-        color: 'red'
-      },
-      showArea: true
-    },
-    // polyline: {
-    //   metric: false
-    // },
-    // circle: {
-    //   shapeOptions: {
-    //     color: '#662d91'
-    //   }
-    // }
-    polyline:false,
-    rectangle: false,
-    circle: {
-      title: 'click on mouse Draw a Circle on map and relase mouse to get results!',
-      shapeOptions: {
-        color: 'green'
-      },
-      metric:['km'],
-      showArea: true,
-      // kilometers:true,
-      // metres: false,
-      // feet: false,
-      // yards: false,
-      // miles: false,
-      // acres: false,
-
-    },
+    marker: false,
+    circle: true,
     circlemarker: false,
-    marker: false
-
-  },
-  edit: {
-    featureGroup: drawnItems
+    rectangle: false,
+    polyline:true,
+    circlemarker: false,
+    marker: false,
+    polygon: true
+    // {
+    //   allowIntersection: true,
+    //   showArea: true
+    // }
   }
 });
 
-map.on('draw:created', function (e) {
-  $("#div_output").empty();
-  document.getElementById("div_output").innerHTML = "Please Wait...";
-  var type = e.layerType,
-    layer = e.layer;
-    console.log(layer)
 
-    layer._latlng.lat
-    layer._latlng.lng
-    layer._mRadius
-
-    var radius_inkm= (layer._mRadius/1000).toFixed(2);
-    // var radius_inkm = radius.toFixed(2)
-    var miles = (radius_inkm / 1.609).toFixed(2);
+map.addLayer(drawnItems);
+map.addControl(drawControl);
 
 
-    $.ajax({
-      url: "https://ringpopulationsapi.azurewebsites.net/api/globalringpopulations?latitude="+layer._latlng.lat+"&longitude="+layer._latlng.lng+"&distance_km="+radius_inkm,
-      type: "GET",
-      dataType: "json",
-      // contentType: "application/json; charset=utf-8",
-      success: function(data){
-          console.log(data);
 
-          var content='' 
-        content=content+"<h4><strong> Population: </strong>" + data.people + "</h4>"+"<strong> Bus Stops: </strong>" + data.busStops + "<br/>"+"<strong> Rail Stops: </strong>" + data.railStops + "<br/>"+"<strong>Tram Stops: </strong>" + data.tramStops+ "<br/>"+"<b style='font-size: 11px;'>Radius in KM & Miles: " + radius_inkm+"km, "+miles+"mi</b>"
-        $("#div_output").html(content)
-      },
-      error: function(e){
-          console.log(e.message);
+
+
+
+
+
+
+
+
+
+var current_spliting_polygon_id
+
+
+function split_terr_polygon_func(GEO_ID){
+
+  current_spliting_polygon_id=GEO_ID
+  map.closePopup();
+  $('.leaflet-popup-pane .leaflet-draw-tooltip').show();
+  drawnItems.clearLayers();
+  $('.leaflet-draw-draw-polyline')[0].click()
+
+
+  // var GEO_ID="'"+GEO_ID_in+"'";
+
+
+   var drawnGeoJSON = L.geoJSON(territories_data, {
+      filter: function (feature) {
+          return feature.properties.GEO_ID === GEO_ID;
       }
+  });
+  console.log(drawnGeoJSON);
+  drawnGeoJSON = drawnGeoJSON.toGeoJSON();
+  console.log(drawnGeoJSON);
+  var drawnGeometry = turf.getGeom(drawnGeoJSON);
+  polygons = [];
+  unkinked = turf.unkinkPolygon(drawnGeometry);
+  turf.geomEach(unkinked, function (geometry) 
+  {
+    polygons.push(geometry);
+  });
+  drawnPolygons.clearLayers();
+  drawnLines.clearLayers();
+}
+
+
+
+const cutIdPrefix = 'cut_';
+var polygons = [];
+
+function cutPolygonStyle(feature) {
+  var id, color;
+  
+  id = feature.properties.id;
+  if (typeof(id) !== 'undefined') {
+    id = id.substring(0, (cutIdPrefix.length + 1))
+  }
+
+  if (id == cutIdPrefix + '1')
+    color = 'green';
+  else if (id == cutIdPrefix + '2')
+    color = 'red';
+  else {
+    color = '#3388ff';
+  }      
+  return {color: color, opacity: 0.5, fillOpacity: 0.1};
+}
+
+
+
+
+
+
+map.on(L.Draw.Event.CREATED, function (event) {
+
+  var getdrawnlayerType = event.layerType
+   
+
+  if (getdrawnlayerType == 'circle') 
+  {
+    console.log("circle created")
+
+    $("#div_output").empty();
+    document.getElementById("div_output").innerHTML = "Please Wait...";
+    var type = event.layerType,
+      layer = event.layer;
+      console.log(layer)
+  
+      layer._latlng.lat
+      layer._latlng.lng
+      layer._mRadius
+  
+      var radius_inkm= (layer._mRadius/1000).toFixed(2);
+      // var radius_inkm = radius.toFixed(2)
+      var miles = (radius_inkm / 1.609).toFixed(2);
+  
+  
+      $.ajax({
+        url: "https://ringpopulationsapi.azurewebsites.net/api/globalringpopulations?latitude="+layer._latlng.lat+"&longitude="+layer._latlng.lng+"&distance_km="+radius_inkm,
+        type: "GET",
+        dataType: "json",
+        // contentType: "application/json; charset=utf-8",
+        success: function(data){
+            console.log(data);
+  
+            var content='' 
+          content=content+"<h4><strong> Population: </strong>" + data.people + "</h4>"+"<strong> Bus Stops: </strong>" + data.busStops + "<br/>"+"<strong> Rail Stops: </strong>" + data.railStops + "<br/>"+"<strong>Tram Stops: </strong>" + data.tramStops+ "<br/>"+"<b style='font-size: 11px;'>Radius in KM & Miles: " + radius_inkm+"km, "+miles+"mi</b>"
+          $("#div_output").html(content)
+        },
+        error: function(e){
+            console.log(e.message);
+        }
+      });
+
+      drawnItems.addLayer(layer);
+  }
+
+  
+  if (getdrawnlayerType == 'polygon') 
+  {
+   
+    var layer = event.layer;
+     new_created_lyr=''
+     new_created_lyr=layer.toGeoJSON()
+     // console.log(e)
+     
+     // feature = layer.feature = layer.feature || {}; // Intialize layer.feature
+     // feature.type = feature.type || "Feature"; // Intialize feature.type
+     // var props = feature.properties = feature.properties || {}; // Intialize feature.properties
+     // props.title = "my title";
+     // props.content = "my content";
+
+     var popnxtid=territories_data.features.length+1
+     var idIW  = L.popup();
+     var content = '<form><b>Territory ID:</b><br/><input id="popid" placeholder="Enter ID" value="'+popnxtid+'" type="text"/><br><b>Color:</b><br/><input id="pcolor" placeholder="Enter ColorID" type="text"/><br><b>Name:</b><br/><input id="pName" placeholder="Enter Name" type="text"/><br><b>Email:</b><br/><input id="pEmail" placeholder="Enter Email" type="text"/><br/><br/><input type="button" class="btn btn-success" style="margin-left:25%" id="okBtn" value="Save Territory" onclick="saveIdIW()"/></form>';
+     idIW.setContent(content);
+     idIW.setLatLng(layer.getBounds().getCenter());
+     idIW.openOn(map);
+     drawnItems.addLayer(layer);
+
+    // console.log("Polygon created")
+    // polygons = [];
+    // unkinked = turf.unkinkPolygon(drawnGeometry);
+    // turf.geomEach(unkinked, function (geometry) 
+    // {
+    //   polygons.push(geometry);
+    // });
+    // drawnPolygons.clearLayers();
+    // drawnLines.clearLayers();
+    // drawnPolygons.addLayer(drawnLayer);
+  }
+  if (getdrawnlayerType == 'polyline') 
+  {
+
+    var drawnLayer, drawnGeoJSON, drawnGeometry, unkinked;
+    var newPolygons = [];
+    debugger;
+    drawnLayer = event.layer;
+    drawnGeoJSON = drawnLayer.toGeoJSON();
+    drawnGeometry = turf.getGeom(drawnGeoJSON);
+
+    console.log("Line created")
+    drawnLines.addLayer(drawnLayer);
+    drawnPolygons.clearLayers();
+    polygons.forEach(function (polygon, index) {
+      var cutPolygon = polygonCut(polygon, drawnGeometry, cutIdPrefix);
+      if (cutPolygon != null) {
+
+
+        L.geoJSON(cutPolygon, {
+          style: cutPolygonStyle,
+          // onEachFeature: function( feature, layer ){
+          //   layer.on({
+          //     click: splited_layerclick
+          //   })
+          // }
+        }).addTo(drawnPolygons);   
+        turf.geomEach(cutPolygon, function (geometry) {
+          newPolygons.push(geometry);
+        });
+
+
+        
+        var fid=Number(current_spliting_polygon_id)
+        // // var arr=territories_data.features
+        // // removeById(arr, fid);
+        var findx=territories_data.features.findIndex(x => x.properties.terr_id === fid)
+       
+
+        var splitedpoly1=cutPolygon.features[0]
+        var splitedpoly2=cutPolygon.features[1]
+
+        var old_terr_props=territories_data.features[findx].properties
+
+        territories_data.features.splice(findx, 1);
+        var oldgeoid= old_terr_props.terr_id 
+        var poly1props = splitedpoly1.properties = splitedpoly1.properties || {}; // Intialize feature.properties
+        poly1props.GEO_ID   = oldgeoid.toString();
+        poly1props.color    = old_terr_props.color
+        poly1props.rep_name = old_terr_props.rep_name 
+        poly1props.rep_email= old_terr_props.rep_email 
+        poly1props.terr_id  = old_terr_props.terr_id
+
+
+        var poly2props = splitedpoly2.properties = splitedpoly2.properties || {}; // Intialize feature.properties
+        var p2geoid=territories_data.features.length+2
+        poly2props.GEO_ID   = p2geoid.toString();
+        poly2props.color    = old_terr_props.color
+        poly2props.rep_name = old_terr_props.rep_name 
+        poly2props.rep_email= old_terr_props.rep_email 
+        poly2props.terr_id  = territories_data.features.length+2
+
+       
+        // console.log(new_created_lyr)
+      
+       territories_data.features.push(splitedpoly1);
+       territories_data.features.push(splitedpoly2);
+      
+        setTimeout(function(){
+          var dataString = JSON.stringify(territories_data);
+          $.ajax({
+                  type: "POST",
+                  dataType: "json",
+                  url: "services/update_json_data.php",
+                  data: {myData:dataString},
+                  // contentType: "application/json; charset=utf-8",
+                  success: function(data){
+                      // alert('Items added');
+                  },
+                  error: function(e){
+                      console.log(e.message);
+                  }
+          });
+          // map.closePopup();
+          map.removeLayer(territories_lyr)
+          territories_lyr=new L.LayerGroup()
+          drawnItems.clearLayers();
+          maketerritories()
+          map.addLayer(territories_lyr)
+          // $("#states_list").empty()
+          // generateList();
+          alert("Polygon Splited Successfully")
+          fly_aftr_split(fid)
+          // map.removeControl(mylayercontrol);
+          // setTimeout(function(){
+          //   var overLays = {
+          //     "Territories Layer":territories_lyr,
+          //     "Counties Map Overlay": uscountieslyr,
+          //     };
+          //     mylayercontrol = L.control.layers(baseLayers,overLays).addTo(map);
+          // },500)
+        },200)
+
+
+       
+      }
+      else {
+        L.geoJSON(polygon).addTo(drawnPolygons);   
+        newPolygons.push(polygon);
+      }
+    });
+    polygons = newPolygons;
+    // console.log(polygons);
+    // new_created_lyr=''
+    // new_created_lyr=polygons
+
+    drawnLines.clearLayers();
+    
+  }
+  console.log(polygons);
+});
+
+
+// const removeById = (arr, id) => {
+//   const requiredIndex = arr.findIndex(el => {
+//      return el.id === String(id);
+//   });
+//   if(requiredIndex === -1){
+//      return false;
+//   };
+//   return !!arr.splice(requiredIndex, 1);
+// };
+
+
+
+
+function fly_aftr_split(tritory_id) {
+  console.log(tritory_id)
+  for(var i=0; i<tlyr_arr.length; i++ ){
+    if(tlyr_arr[i].feature.properties.terr_id==tritory_id){
+      tlyr_arr_fly_index=i
+      var latlng= tlyr_arr[i].getBounds().getCenter()
+      map.flyTo(latlng, 12, {
+          duration: 0
+      });
+    }
+  }
+}
+
+
+
+function polygonCut(polygon, line, idPrefix) {
+  const THICK_LINE_UNITS = 'kilometers';
+  const THICK_LINE_WIDTH = 0.001;
+  var i, j, id, intersectPoints, lineCoords, forCut, forSelect;
+  var thickLineString, thickLinePolygon, clipped, polyg, intersect;
+  var polyCoords = [];
+  var cutPolyGeoms = [];
+  var cutFeatures = [];
+  var offsetLine = [];
+  var retVal = null;
+  
+  if (((polygon.type != 'Polygon') && (polygon.type != 'MultiPolygon')) || (line.type != 'LineString')) {
+    return retVal;
+  }
+  
+  if (typeof(idPrefix) === 'undefined') {
+    idPrefix = '';
+  }
+  
+  intersectPoints = turf.lineIntersect(polygon, line);
+  if (intersectPoints.features.length == 0) {
+    return retVal;
+  }
+    
+  var lineCoords = turf.getCoords(line);
+  if ((turf.booleanWithin(turf.point(lineCoords[0]), polygon) ||
+      (turf.booleanWithin(turf.point(lineCoords[lineCoords.length - 1]), polygon)))) {
+    return retVal;
+  }
+
+  offsetLine[0] = turf.lineOffset(line, THICK_LINE_WIDTH, {units: THICK_LINE_UNITS});
+  offsetLine[1] = turf.lineOffset(line, -THICK_LINE_WIDTH, {units: THICK_LINE_UNITS});
+
+  for (i = 0; i <= 1; i++) {
+    forCut = i; 
+    forSelect = (i + 1) % 2; 
+    polyCoords = [];
+    for (j = 0; j < line.coordinates.length; j++) {
+      polyCoords.push(line.coordinates[j]);
+    }
+     for (j = (offsetLine[forCut].geometry.coordinates.length - 1); j >= 0; j--) {
+      polyCoords.push(offsetLine[forCut].geometry.coordinates[j]);
+    }
+    polyCoords.push(line.coordinates[0]);
+    
+    thickLineString = turf.lineString(polyCoords);
+    thickLinePolygon = turf.lineToPolygon(thickLineString);
+    clipped = turf.difference(polygon, thickLinePolygon);
+   
+    cutPolyGeoms = [];
+    for (j = 0; j < clipped.geometry.coordinates.length; j++) {
+      polyg = turf.polygon(clipped.geometry.coordinates[j]);
+      intersect = turf.lineIntersect(polyg, offsetLine[forSelect]);
+      if (intersect.features.length > 0) {
+        cutPolyGeoms.push(polyg.geometry.coordinates);
+      }
+    }
+    
+    cutPolyGeoms.forEach(function (geometry, index) {
+      id = idPrefix + (i + 1) + '.' +  (index + 1);
+      cutFeatures.push(turf.polygon(geometry, {id: id}));
+    });
+  }
+  
+  if (cutFeatures.length > 0) retVal = turf.featureCollection(cutFeatures);
+  
+  return retVal;
+}
+
+
+
+
+
+function saveIdIW(){
+  var popid=$("#popid").val();
+  var pcolor=$("#pcolor").val();
+  var pname=$("#pName").val();
+  var pEmail=$("#pEmail").val();
+  
+  // console.log(popid+","+pname+","+pEmail)
+  // console.log(new_created_lyr)
+  var popnxtid=territories_data.features.length+1
+  var props = new_created_lyr.properties = new_created_lyr.properties || {}; // Intialize feature.properties
+  props.GEO_ID = popnxtid.toString();
+  props.color = Number(pcolor);
+  props.rep_name = pname;
+  props.rep_email = pEmail;
+  props.terr_id = Number(popid);
+  // console.log(new_created_lyr)
+
+ territories_data.features.push(new_created_lyr);
+
+  setTimeout(function(){
+    var dataString = JSON.stringify(territories_data);
+    $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "services/update_json_data.php",
+            data: {myData:dataString},
+            // contentType: "application/json; charset=utf-8",
+            success: function(data){
+                // alert('Items added');
+            },
+            error: function(e){
+                console.log(e.message);
+            }
     });
 
 
-  if (type === 'marker') {
-    radiusCircle = layer;
-    layer.bindPopup('A popup!');
-  }
-
-  if (type === 'polygon') {
-    polygon = layer;
+    map.closePopup();
+    map.removeLayer(territories_lyr)
+    territories_lyr=new L.LayerGroup()
+    drawnItems.clearLayers();
+    maketerritories()
+    map.addLayer(territories_lyr)
+    $("#states_list").empty()
+    generateList();
+    alert("New Territory Added Successfully")
+    map.removeControl(mylayercontrol);
+    setTimeout(function(){
+      var overLays = {
+        "Territories Layer":territories_lyr,
+        "Counties Map Overlay": uscountieslyr,
+        };
+        mylayercontrol = L.control.layers(baseLayers,overLays).addTo(map);
+    },500)
+  },200)
 }
 
-  drawnItems.addLayer(layer);
-});
 
-map.addControl(drawControl);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// function splited_layerclick(e){
+// console.log(e)
+// var layer = e.target;
+// // var lyrid= JSON.parse(layer.feature.properties.id)
+// var lyrid
+// var lid= layer.feature.properties.id.replace(/^["'](.+(?=["']$))["']$/, '$1');
+// if(lid="cut_1.1"){
+//   lyrid=1
+// }else{
+//   lyrid=2
+// }
+
+//   var idIW  = L.popup();
+//   var content = '<form><b>Territory ID:</b><br/><input id="popid" placeholder="Enter ID" type="text"/><br><b>Color:</b><br/><input id="pcolor" placeholder="Enter ColorID" type="text"/><br><b>Name:</b><br/><input id="pName" placeholder="Enter Name" type="text"/><br><b>Email:</b><br/><input id="pEmail" placeholder="Enter Email" type="text"/><br/><br/><input type="button" class="btn btn-success" style="margin-left:25%" id="okBtn" value="Save Splited Territory" onclick="save_splited_IdIW('+lyrid+')"/></form>';
+//   idIW.setContent(content);
+//   idIW.setLatLng(layer.getBounds().getCenter());
+//   idIW.addTo(map)
+// }
+
+// function save_splited_IdIW(sp_id){
+//   console.log(sp_id)
+// console.log(new_created_lyr)
+// var new_splited_lyr
+// if(sp_id==1){
+//   new_splited_lyr=new_created_lyr[0]
+// }else{
+//   new_splited_lyr=new_created_lyr[0]
+// }
+
+//   var popid=$("#popid").val();
+//   var pcolor=$("#pcolor").val();
+//   var pname=$("#pName").val();
+//   var pEmail=$("#pEmail").val();
+  
+//   // console.log(popid+","+pname+","+pEmail)
+//   // console.log(new_splited_lyr)
+//   var props = new_splited_lyr.properties = new_splited_lyr.properties || {}; // Intialize feature.properties
+//   props.id = popid;
+//   props.color = pcolor;
+//   props.rep_name = pname;
+//   props.rep_email = pEmail;
+//   props.terr_id = popid;
+//   // console.log(new_splited_lyr)
+
+//  territories_data.features.push(new_splited_lyr);
+
+//   setTimeout(function(){
+//     var dataString = JSON.stringify(territories_data);
+//     $.ajax({
+//             type: "POST",
+//             dataType: "json",
+//             url: "services/update_json_data.php",
+//             data: {myData:dataString},
+//             // contentType: "application/json; charset=utf-8",
+//             success: function(data){
+//                 // alert('Items added');
+//             },
+//             error: function(e){
+//                 console.log(e.message);
+//             }
+//     });
+//     map.closePopup();
+//     // map.removeLayer(territories_lyr)
+//     // territories_lyr=new L.LayerGroup()
+//     // drawnItems.clearLayers();
+//     // maketerritories()
+//     // map.addLayer(territories_lyr)
+//     // $("#states_list").empty()
+//     // generateList();
+//     alert("New Polygon Added Successfully")
+//     // map.removeControl(mylayercontrol);
+//     // setTimeout(function(){
+//     //   var overLays = {
+//     //     "Territories Layer":territories_lyr,
+//     //     "Counties Map Overlay": uscountieslyr,
+//     //     };
+//     //     mylayercontrol = L.control.layers(baseLayers,overLays).addTo(map);
+//     // },500)
+//   },200)
+ 
+// }
+
+
+
+
 
 
 
@@ -795,6 +1246,21 @@ $("#popdrawcircle").click(function(){
 drawnItems.clearLayers();
 $('.leaflet-draw-draw-circle')[0].click()
 });
+
+
+$("#add_polygon").click(function(){
+  $('.leaflet-popup-pane .leaflet-draw-tooltip').show();
+  drawnItems.clearLayers();
+  $('.leaflet-draw-draw-polygon')[0].click()
+});
+
+
+
+
+
+
+
+
 
 
 
